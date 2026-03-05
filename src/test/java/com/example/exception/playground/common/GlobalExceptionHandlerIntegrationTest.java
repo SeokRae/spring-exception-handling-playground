@@ -24,7 +24,7 @@ class GlobalExceptionHandlerIntegrationTest {
         mockMvc.perform(get("/api/non-existent"))
                 .andDo(print())
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.code").value("C003"))
+                .andExpect(jsonPath("$.code").value("C006"))
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.timestamp").exists());
     }

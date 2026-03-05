@@ -79,7 +79,55 @@ class GlobalExceptionHandlerTest {
             mockMvc.perform(patch("/api/samples/1"))
                     .andDo(print())
                     .andExpect(status().isMethodNotAllowed())
-                    .andExpect(jsonPath("$.code").value("C002"));
+                    .andExpect(jsonPath("$.code").value("C005"));
+        }
+    }
+
+    @Nested
+    @DisplayName("Missing Parameter (MissingServletRequestParameterException)")
+    class MissingParameterTests {
+
+        @Test
+        @DisplayName("missing required query param returns 400")
+        void missingParam() throws Exception {
+            mockMvc.perform(get("/api/samples/missing-param"))
+                    .andDo(print())
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.code").value("C002"))
+                    .andExpect(jsonPath("$.message").value("Required parameter 'required' of type 'String' is missing"));
+        }
+    }
+
+    @Nested
+    @DisplayName("Unsupported Media Type (HttpMediaTypeNotSupportedException)")
+    class UnsupportedMediaTypeTests {
+
+        @Test
+        @DisplayName("XML content-type on JSON endpoint returns 415")
+        void unsupportedMediaType() throws Exception {
+            mockMvc.perform(post("/api/samples")
+                            .contentType(MediaType.APPLICATION_XML)
+                            .content("<name>test</name>"))
+                    .andDo(print())
+                    .andExpect(status().isUnsupportedMediaType())
+                    .andExpect(jsonPath("$.code").value("C003"));
+        }
+    }
+
+    @Nested
+    @DisplayName("Message Not Readable (HttpMessageNotReadableException)")
+    class MessageNotReadableTests {
+
+        @Test
+        @DisplayName("malformed JSON returns 400")
+        void malformedJson() throws Exception {
+            mockMvc.perform(post("/api/samples")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{invalid json"))
+                    .andDo(print())
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.code").value("C004"))
+                    .andExpect(jsonPath("$.message").value("Malformed request body"));
         }
     }
 
@@ -93,7 +141,7 @@ class GlobalExceptionHandlerTest {
             mockMvc.perform(get("/api/samples/0"))
                     .andDo(print())
                     .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.code").value("C003"))
+                    .andExpect(jsonPath("$.code").value("C006"))
                     .andExpect(jsonPath("$.message").value("Sample with id 0 not found"));
         }
 
@@ -122,7 +170,7 @@ class GlobalExceptionHandlerTest {
             mockMvc.perform(get("/api/samples/unexpected-error"))
                     .andDo(print())
                     .andExpect(status().isInternalServerError())
-                    .andExpect(jsonPath("$.code").value("C004"))
+                    .andExpect(jsonPath("$.code").value("C999"))
                     .andExpect(jsonPath("$.message").value("Internal server error"));
         }
     }

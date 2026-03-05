@@ -33,6 +33,11 @@ public class SampleController {
         return ResponseEntity.ok(Map.of("number", number));
     }
 
+    @GetMapping("/missing-param")
+    public ResponseEntity<Map<String, String>> missingParam(@RequestParam String required) {
+        return ResponseEntity.ok(Map.of("required", required));
+    }
+
     @GetMapping("/unexpected-error")
     public ResponseEntity<Void> unexpectedError() {
         throw new RuntimeException("Something went terribly wrong");

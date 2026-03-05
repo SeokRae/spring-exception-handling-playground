@@ -6,9 +6,12 @@ public enum ErrorCode {
 
     // Common
     INVALID_INPUT(HttpStatus.BAD_REQUEST, "C001", "Invalid input value"),
-    METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "C002", "Method not allowed"),
-    RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "C003", "Resource not found"),
-    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "C004", "Internal server error"),
+    MISSING_PARAMETER(HttpStatus.BAD_REQUEST, "C002", "Missing required parameter"),
+    UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "C003", "Unsupported media type"),
+    MESSAGE_NOT_READABLE(HttpStatus.BAD_REQUEST, "C004", "Malformed request body"),
+    METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "C005", "Method not allowed"),
+    RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "C006", "Resource not found"),
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "C999", "Internal server error"),
 
     // Business
     DUPLICATE_RESOURCE(HttpStatus.CONFLICT, "B001", "Duplicate resource exists"),
