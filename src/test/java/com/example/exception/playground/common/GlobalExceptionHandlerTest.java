@@ -35,7 +35,10 @@ class GlobalExceptionHandlerTest {
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.code").value("C001"))
                     .andExpect(jsonPath("$.errors").isArray())
-                    .andExpect(jsonPath("$.errors").isNotEmpty());
+                    .andExpect(jsonPath("$.errors").isNotEmpty())
+                    .andExpect(jsonPath("$.traceId").exists())
+                    .andExpect(jsonPath("$.debugMessage").doesNotExist())
+                    .andExpect(jsonPath("$.stackTrace").doesNotExist());
         }
 
         @Test

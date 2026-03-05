@@ -4,3 +4,6 @@ spring:
   web:
     resources:
       add-mappings: false
+
+app:
+  debug: false
