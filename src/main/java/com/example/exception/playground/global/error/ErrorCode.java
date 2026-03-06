@@ -27,7 +27,15 @@ public enum ErrorCode {
     // Idempotency
     IDEMPOTENCY_KEY_MISSING(HttpStatus.BAD_REQUEST, "I001", "Idempotency-Key header is required"),
     IDEMPOTENCY_KEY_REUSED(HttpStatus.CONFLICT, "I002", "Request in progress with this key"),
-    IDEMPOTENCY_FINGERPRINT_MISMATCH(HttpStatus.UNPROCESSABLE_ENTITY, "I003", "Request does not match original");
+    IDEMPOTENCY_FINGERPRINT_MISMATCH(HttpStatus.UNPROCESSABLE_ENTITY, "I003", "Request does not match original"),
+
+    // Gateway (하위 서비스 통신 오류)
+    GATEWAY_ERROR(HttpStatus.BAD_GATEWAY, "G001", "Downstream service unavailable"),
+    GATEWAY_TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "G002", "Downstream service timeout"),
+    SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "G003", "Service temporarily unavailable"),
+
+    // Accepted (비동기 처리 상태)
+    REQUEST_IN_PROGRESS(HttpStatus.ACCEPTED, "P001", "Request is being processed");
 
     private final HttpStatus status;
     private final String code;
