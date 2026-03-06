@@ -1,4 +1,4 @@
-package com.example.exception.playground.common;
+package com.example.exception.playground.global.filter;
 
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -8,7 +8,7 @@ import org.springframework.core.Ordered;
 
 @Configuration
 @Profile("dev")
-public class LoggingFilterConfig {
+public class FilterConfig {
 
     private static final int RATE_LIMIT_ORDER = Ordered.HIGHEST_PRECEDENCE;
     private static final int IDEMPOTENCY_ORDER = Ordered.HIGHEST_PRECEDENCE + 1;

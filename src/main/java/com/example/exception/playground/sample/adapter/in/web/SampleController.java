@@ -1,10 +1,10 @@
-package com.example.exception.playground.sample;
+package com.example.exception.playground.sample.adapter.in.web;
 
-import com.example.exception.playground.common.AccessDeniedException;
-import com.example.exception.playground.common.BusinessRuleViolationException;
-import com.example.exception.playground.common.DuplicateResourceException;
-import com.example.exception.playground.common.NotFoundException;
-import com.example.exception.playground.common.UnauthorizedException;
+import com.example.exception.playground.global.exception.AccessDeniedException;
+import com.example.exception.playground.global.exception.BusinessRuleViolationException;
+import com.example.exception.playground.global.exception.DuplicateResourceException;
+import com.example.exception.playground.global.exception.NotFoundException;
+import com.example.exception.playground.global.exception.UnauthorizedException;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

@@ -1,4 +1,4 @@
-package com.example.exception.playground.common;
+package com.example.exception.playground.global.filter;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;

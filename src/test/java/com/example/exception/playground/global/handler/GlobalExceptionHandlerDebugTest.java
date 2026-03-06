@@ -1,6 +1,6 @@
-package com.example.exception.playground.common;
+package com.example.exception.playground.global.handler;
 
-import com.example.exception.playground.sample.SampleController;
+import com.example.exception.playground.sample.adapter.in.web.SampleController;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
