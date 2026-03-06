@@ -68,12 +68,14 @@ public class RequestResponseLoggingFilter extends OncePerRequestFilter {
             log.info("[{}] >>> Request Body: {}", traceId, requestBody);
         }
 
+        String responseLog = String.format("[%s] <<< %s %s | Status: %d | %dms%s",
+                traceId, request.getMethod(), request.getRequestURI(), status, duration,
+                body.isBlank() ? "" : " | Body: " + body);
+
         if (status >= 400) {
-            log.warn("[{}] <<< {} {} | Status: {} | {}ms | Body: {}",
-                    traceId, request.getMethod(), request.getRequestURI(), status, duration, body);
+            log.warn(responseLog);
         } else {
-            log.info("[{}] <<< {} {} | Status: {} | {}ms",
-                    traceId, request.getMethod(), request.getRequestURI(), status, duration);
+            log.info(responseLog);
         }
     }
 }

@@ -12,9 +12,9 @@ import org.springframework.core.Ordered;
 @EnableConfigurationProperties(FilterProperties.class)
 public class FilterConfig {
 
-    private static final int RATE_LIMIT_ORDER = Ordered.HIGHEST_PRECEDENCE;
-    private static final int IDEMPOTENCY_ORDER = Ordered.HIGHEST_PRECEDENCE + 1;
-    private static final int LOGGING_ORDER = Ordered.HIGHEST_PRECEDENCE + 2;
+    private static final int LOGGING_ORDER = Ordered.HIGHEST_PRECEDENCE;
+    private static final int RATE_LIMIT_ORDER = Ordered.HIGHEST_PRECEDENCE + 1;
+    private static final int IDEMPOTENCY_ORDER = Ordered.HIGHEST_PRECEDENCE + 2;
 
     @Bean
     public FilterRegistrationBean<RateLimitFilter> rateLimitFilter(FilterProperties properties) {
