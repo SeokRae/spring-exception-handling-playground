@@ -198,6 +198,60 @@ class GlobalExceptionHandlerTest {
     }
 
     @Nested
+    @DisplayName("Gateway Errors (하위 서비스 통신 오류)")
+    class GatewayErrorTests {
+
+        @Test
+        @DisplayName("GatewayErrorException returns 502 with RESUBMIT strategy")
+        void gatewayError() throws Exception {
+            mockMvc.perform(get("/api/samples/gateway-error"))
+                    .andDo(print())
+                    .andExpect(status().isBadGateway())
+                    .andExpect(jsonPath("$.code").value("G001"))
+                    .andExpect(jsonPath("$.message").value("Payment service connection refused"))
+                    .andExpect(jsonPath("$.retryable").value(true))
+                    .andExpect(jsonPath("$.retryStrategy").value("RESUBMIT"));
+        }
+
+        @Test
+        @DisplayName("GatewayTimeoutException returns 504 with RESUBMIT strategy")
+        void gatewayTimeout() throws Exception {
+            mockMvc.perform(get("/api/samples/gateway-timeout"))
+                    .andDo(print())
+                    .andExpect(status().isGatewayTimeout())
+                    .andExpect(jsonPath("$.code").value("G002"))
+                    .andExpect(jsonPath("$.message").value("Payment service did not respond within 5000ms"))
+                    .andExpect(jsonPath("$.retryable").value(true))
+                    .andExpect(jsonPath("$.retryStrategy").value("RESUBMIT"));
+        }
+
+        @Test
+        @DisplayName("ServiceUnavailableException returns 503 with Retry-After header")
+        void serviceUnavailable() throws Exception {
+            mockMvc.perform(get("/api/samples/service-unavailable"))
+                    .andDo(print())
+                    .andExpect(status().isServiceUnavailable())
+                    .andExpect(jsonPath("$.code").value("G003"))
+                    .andExpect(jsonPath("$.message").value("Payment service is under maintenance"))
+                    .andExpect(jsonPath("$.retryable").value(true))
+                    .andExpect(jsonPath("$.retryStrategy").value("RESUBMIT"))
+                    .andExpect(header().string("Retry-After", "30"));
+        }
+
+        @Test
+        @DisplayName("RequestInProgressException returns 202 with POLL_STATUS strategy")
+        void requestInProgress() throws Exception {
+            mockMvc.perform(get("/api/samples/request-in-progress"))
+                    .andDo(print())
+                    .andExpect(status().isAccepted())
+                    .andExpect(jsonPath("$.code").value("P001"))
+                    .andExpect(jsonPath("$.message").value("Request is being processed by payment service"))
+                    .andExpect(jsonPath("$.retryable").value(true))
+                    .andExpect(jsonPath("$.retryStrategy").value("POLL_STATUS"));
+        }
+    }
+
+    @Nested
     @DisplayName("Unexpected Errors")
     class UnexpectedErrorTests {
 

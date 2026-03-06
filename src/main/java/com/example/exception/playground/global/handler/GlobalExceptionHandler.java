@@ -3,9 +3,13 @@ package com.example.exception.playground.global.handler;
 import com.example.exception.playground.global.error.ErrorCode;
 import com.example.exception.playground.global.error.ErrorResponse;
 import com.example.exception.playground.global.exception.BusinessException;
+import com.example.exception.playground.global.exception.GatewayException;
+import com.example.exception.playground.global.exception.RequestInProgressException;
+import com.example.exception.playground.global.exception.ServiceUnavailableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -108,6 +112,40 @@ public class GlobalExceptionHandler {
                 ? ErrorResponse.withDebug(ErrorCode.RESOURCE_NOT_FOUND, e.getMessage(), e)
                 : ErrorResponse.of(ErrorCode.RESOURCE_NOT_FOUND, e.getMessage());
         return ResponseEntity.status(ErrorCode.RESOURCE_NOT_FOUND.getStatus()).body(response);
+    }
+
+    @ExceptionHandler(RequestInProgressException.class)
+    protected ResponseEntity<ErrorResponse> handleRequestInProgress(RequestInProgressException e) {
+        log.info("Request in progress: {}", e.getMessage());
+        ErrorCode errorCode = e.getErrorCode();
+        ErrorResponse response = debug
+                ? ErrorResponse.retryableWithDebug(errorCode, e.getMessage(), "POLL_STATUS", e)
+                : ErrorResponse.retryable(errorCode, e.getMessage(), "POLL_STATUS");
+        return ResponseEntity.status(errorCode.getStatus()).body(response);
+    }
+
+    @ExceptionHandler(ServiceUnavailableException.class)
+    protected ResponseEntity<ErrorResponse> handleServiceUnavailable(ServiceUnavailableException e) {
+        log.warn("Service unavailable: {}", e.getMessage());
+        ErrorCode errorCode = e.getErrorCode();
+        ErrorResponse response = debug
+                ? ErrorResponse.retryableWithDebug(errorCode, e.getMessage(), "RESUBMIT", e)
+                : ErrorResponse.retryable(errorCode, e.getMessage(), "RESUBMIT");
+        ResponseEntity.BodyBuilder builder = ResponseEntity.status(errorCode.getStatus());
+        if (e.getRetryAfterSeconds() != null) {
+            builder.header(HttpHeaders.RETRY_AFTER, String.valueOf(e.getRetryAfterSeconds()));
+        }
+        return builder.body(response);
+    }
+
+    @ExceptionHandler(GatewayException.class)
+    protected ResponseEntity<ErrorResponse> handleGatewayException(GatewayException e) {
+        log.error("Gateway error: {}", e.getMessage(), e);
+        ErrorCode errorCode = e.getErrorCode();
+        ErrorResponse response = debug
+                ? ErrorResponse.retryableWithDebug(errorCode, e.getMessage(), "RESUBMIT", e)
+                : ErrorResponse.retryable(errorCode, e.getMessage(), "RESUBMIT");
+        return ResponseEntity.status(errorCode.getStatus()).body(response);
     }
 
     @ExceptionHandler(BusinessException.class)
