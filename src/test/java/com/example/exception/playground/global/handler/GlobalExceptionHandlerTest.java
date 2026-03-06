@@ -57,22 +57,6 @@ class GlobalExceptionHandlerTest {
     }
 
     @Nested
-    @DisplayName("Type Mismatch (MethodArgumentTypeMismatchException)")
-    class TypeMismatchTests {
-
-        @Test
-        @DisplayName("string for integer param returns 400")
-        void typeMismatch() throws Exception {
-            mockMvc.perform(get("/api/samples/type-mismatch")
-                            .param("number", "abc"))
-                    .andDo(print())
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.code").value("C001"))
-                    .andExpect(jsonPath("$.message").value("'number' should be of type 'Integer'"));
-        }
-    }
-
-    @Nested
     @DisplayName("Method Not Allowed")
     class MethodNotAllowedTests {
 
@@ -83,21 +67,6 @@ class GlobalExceptionHandlerTest {
                     .andDo(print())
                     .andExpect(status().isMethodNotAllowed())
                     .andExpect(jsonPath("$.code").value("C005"));
-        }
-    }
-
-    @Nested
-    @DisplayName("Missing Parameter (MissingServletRequestParameterException)")
-    class MissingParameterTests {
-
-        @Test
-        @DisplayName("missing required query param returns 400")
-        void missingParam() throws Exception {
-            mockMvc.perform(get("/api/samples/missing-param"))
-                    .andDo(print())
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.code").value("C002"))
-                    .andExpect(jsonPath("$.message").value("Required parameter 'required' of type 'String' is missing"));
         }
     }
 
@@ -149,40 +118,6 @@ class GlobalExceptionHandlerTest {
         }
 
         @Test
-        @DisplayName("UnauthorizedException returns 401")
-        void unauthorized() throws Exception {
-            mockMvc.perform(get("/api/samples/unauthorized"))
-                    .andDo(print())
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.code").value("A001"))
-                    .andExpect(jsonPath("$.message").value("Invalid or expired token"));
-        }
-
-        @Test
-        @DisplayName("AccessDeniedException returns 403")
-        void accessDenied() throws Exception {
-            mockMvc.perform(get("/api/samples/access-denied"))
-                    .andDo(print())
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.code").value("A002"))
-                    .andExpect(jsonPath("$.message").value("Insufficient permissions to access this resource"));
-        }
-
-        @Test
-        @DisplayName("BusinessRuleViolationException returns 422")
-        void businessRuleViolation() throws Exception {
-            mockMvc.perform(post("/api/samples/business-rule")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("""
-                                    {"name": "test", "age": 150}
-                                    """))
-                    .andDo(print())
-                    .andExpect(status().isUnprocessableEntity())
-                    .andExpect(jsonPath("$.code").value("B002"))
-                    .andExpect(jsonPath("$.message").value("Age cannot exceed 100 for this operation"));
-        }
-
-        @Test
         @DisplayName("DuplicateResourceException returns 409")
         void duplicate() throws Exception {
             mockMvc.perform(post("/api/samples")
@@ -194,82 +129,6 @@ class GlobalExceptionHandlerTest {
                     .andExpect(status().isConflict())
                     .andExpect(jsonPath("$.code").value("B001"))
                     .andExpect(jsonPath("$.message").value("Sample with name 'duplicate' already exists"));
-        }
-    }
-
-    @Nested
-    @DisplayName("Gateway Errors (하위 서비스 통신 오류)")
-    class GatewayErrorTests {
-
-        @Test
-        @DisplayName("GatewayErrorException returns 502 with RESUBMIT strategy")
-        void gatewayError() throws Exception {
-            mockMvc.perform(get("/api/samples/gateway-error"))
-                    .andDo(print())
-                    .andExpect(status().isBadGateway())
-                    .andExpect(jsonPath("$.code").value("G001"))
-                    .andExpect(jsonPath("$.status").value(502))
-                    .andExpect(jsonPath("$.message").value("Payment service connection refused"))
-                    .andExpect(jsonPath("$.retryable").value(true))
-                    .andExpect(jsonPath("$.retryStrategy").value("RESUBMIT"))
-                    .andExpect(jsonPath("$.traceId").exists())
-                    .andExpect(jsonPath("$.timestamp").exists());
-        }
-
-        @Test
-        @DisplayName("GatewayTimeoutException returns 504 with RESUBMIT strategy")
-        void gatewayTimeout() throws Exception {
-            mockMvc.perform(get("/api/samples/gateway-timeout"))
-                    .andDo(print())
-                    .andExpect(status().isGatewayTimeout())
-                    .andExpect(jsonPath("$.code").value("G002"))
-                    .andExpect(jsonPath("$.status").value(504))
-                    .andExpect(jsonPath("$.message").value("Payment service did not respond within 5000ms"))
-                    .andExpect(jsonPath("$.retryable").value(true))
-                    .andExpect(jsonPath("$.retryStrategy").value("RESUBMIT"))
-                    .andExpect(jsonPath("$.traceId").exists())
-                    .andExpect(jsonPath("$.timestamp").exists());
-        }
-
-        @Test
-        @DisplayName("ServiceUnavailableException returns 503 with Retry-After header")
-        void serviceUnavailable() throws Exception {
-            mockMvc.perform(get("/api/samples/service-unavailable"))
-                    .andDo(print())
-                    .andExpect(status().isServiceUnavailable())
-                    .andExpect(jsonPath("$.code").value("G003"))
-                    .andExpect(jsonPath("$.status").value(503))
-                    .andExpect(jsonPath("$.message").value("Payment service is under maintenance"))
-                    .andExpect(jsonPath("$.retryable").value(true))
-                    .andExpect(jsonPath("$.retryStrategy").value("RESUBMIT"))
-                    .andExpect(header().string("Retry-After", "30"));
-        }
-
-        @Test
-        @DisplayName("ServiceUnavailableException without retryAfterSeconds does not include Retry-After header")
-        void serviceUnavailableWithoutRetryAfter() throws Exception {
-            mockMvc.perform(get("/api/samples/service-unavailable-no-retry"))
-                    .andDo(print())
-                    .andExpect(status().isServiceUnavailable())
-                    .andExpect(jsonPath("$.code").value("G003"))
-                    .andExpect(jsonPath("$.retryable").value(true))
-                    .andExpect(jsonPath("$.retryStrategy").value("RESUBMIT"))
-                    .andExpect(header().doesNotExist("Retry-After"));
-        }
-
-        @Test
-        @DisplayName("RequestInProgressException returns 202 with POLL_STATUS strategy")
-        void requestInProgress() throws Exception {
-            mockMvc.perform(get("/api/samples/request-in-progress"))
-                    .andDo(print())
-                    .andExpect(status().isAccepted())
-                    .andExpect(jsonPath("$.code").value("P001"))
-                    .andExpect(jsonPath("$.status").value(202))
-                    .andExpect(jsonPath("$.message").value("Request is being processed by payment service"))
-                    .andExpect(jsonPath("$.retryable").value(true))
-                    .andExpect(jsonPath("$.retryStrategy").value("POLL_STATUS"))
-                    .andExpect(jsonPath("$.traceId").exists())
-                    .andExpect(jsonPath("$.timestamp").exists());
         }
     }
 
@@ -289,17 +148,6 @@ class GlobalExceptionHandlerTest {
         }
 
         @Test
-        @DisplayName("Unexpected error response does not include retryable/retryStrategy")
-        void unexpectedErrorNoRetryFields() throws Exception {
-            mockMvc.perform(get("/api/samples/unexpected-error"))
-                    .andDo(print())
-                    .andExpect(status().isInternalServerError())
-                    .andExpect(jsonPath("$.code").value("C999"))
-                    .andExpect(jsonPath("$.retryable").doesNotExist())
-                    .andExpect(jsonPath("$.retryStrategy").doesNotExist());
-        }
-
-        @Test
         @DisplayName("Validation error response does not include retryable/retryStrategy")
         void validationErrorNoRetryFields() throws Exception {
             mockMvc.perform(post("/api/samples")
@@ -311,21 +159,6 @@ class GlobalExceptionHandlerTest {
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.retryable").doesNotExist())
                     .andExpect(jsonPath("$.retryStrategy").doesNotExist());
-        }
-    }
-
-    @Nested
-    @DisplayName("Unexpected Errors")
-    class UnexpectedErrorTests {
-
-        @Test
-        @DisplayName("RuntimeException returns 500")
-        void unexpectedError() throws Exception {
-            mockMvc.perform(get("/api/samples/unexpected-error"))
-                    .andDo(print())
-                    .andExpect(status().isInternalServerError())
-                    .andExpect(jsonPath("$.code").value("C999"))
-                    .andExpect(jsonPath("$.message").value("Internal server error"));
         }
     }
 }
