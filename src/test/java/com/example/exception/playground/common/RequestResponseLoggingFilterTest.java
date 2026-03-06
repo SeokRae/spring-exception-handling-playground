@@ -37,9 +37,11 @@ class RequestResponseLoggingFilterTest {
 
         @Test
         @DisplayName("로깅 필터 빈이 등록되어 있다")
+        @SuppressWarnings("rawtypes")
         void filterBeanExists() {
-            assertThat(context.getBeansOfType(FilterRegistrationBean.class))
-                    .isNotEmpty();
+            boolean hasLoggingFilter = context.getBeansOfType(FilterRegistrationBean.class).values().stream()
+                    .anyMatch(bean -> bean.getFilter() instanceof RequestResponseLoggingFilter);
+            assertThat(hasLoggingFilter).isTrue();
         }
 
         @Test
@@ -85,8 +87,11 @@ class RequestResponseLoggingFilterTest {
 
         @Test
         @DisplayName("로깅 필터 빈이 등록되지 않는다")
+        @SuppressWarnings("rawtypes")
         void filterBeanNotExists() {
-            assertThat(context.getBeansOfType(LoggingFilterConfig.class)).isEmpty();
+            boolean hasLoggingFilter = context.getBeansOfType(FilterRegistrationBean.class).values().stream()
+                    .anyMatch(bean -> bean.getFilter() instanceof RequestResponseLoggingFilter);
+            assertThat(hasLoggingFilter).isFalse();
         }
     }
 }
