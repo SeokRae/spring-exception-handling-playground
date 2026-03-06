@@ -28,6 +28,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
         String clientIp = request.getRemoteAddr();
         long now = System.currentTimeMillis();
 
+        evictExpiredBuckets(now);
+
         RateLimitBucket bucket = buckets.compute(clientIp, (key, existing) -> {
             if (existing == null || existing.isExpired(now)) {
                 return new RateLimitBucket(now, windowMillis);
@@ -43,6 +45,10 @@ public class RateLimitFilter extends OncePerRequestFilter {
             FilterErrorResponseWriter.write(response, ErrorCode.RATE_LIMIT_EXCEEDED,
                     "Rate limit exceeded. Try again in " + retryAfterSeconds + " seconds");
         }
+    }
+
+    private void evictExpiredBuckets(long now) {
+        buckets.values().removeIf(bucket -> bucket.isExpired(now));
     }
 
     static class RateLimitBucket {

@@ -1,8 +1,8 @@
 app:
-  debug: true
   filter:
+    enabled: true
     rate-limit:
       max-requests: 50
-      window-millis: 1000
+      window: 1s
     idempotency:
-      ttl-millis: 500
+      ttl: 500ms

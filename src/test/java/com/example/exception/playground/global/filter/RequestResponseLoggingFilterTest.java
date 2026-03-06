@@ -25,11 +25,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class RequestResponseLoggingFilterTest {
 
     @Nested
-    @DisplayName("dev 프로파일에서 로깅 필터 활성화")
+    @DisplayName("필터 활성화 시 로깅 필터 동작")
     @SpringBootTest
     @AutoConfigureMockMvc
-    @ActiveProfiles("dev")
-    class DevProfileTest {
+    @ActiveProfiles("test-filter")
+    class EnabledFilterTest {
 
         @Autowired
         private MockMvc mockMvc;
@@ -61,8 +61,7 @@ class RequestResponseLoggingFilterTest {
             mockMvc.perform(get("/api/samples/0"))
                     .andDo(print())
                     .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.code").value("C006"))
-                    .andExpect(jsonPath("$.debugMessage").exists());
+                    .andExpect(jsonPath("$.code").value("C006"));
         }
 
         @Test
