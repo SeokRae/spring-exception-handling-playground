@@ -24,6 +24,7 @@ public class RequestResponseLoggingFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+        String previousTraceId = MDC.get(TRACE_ID);
         String traceId = UUID.randomUUID().toString().substring(0, 8);
         MDC.put(TRACE_ID, traceId);
 
@@ -39,7 +40,11 @@ public class RequestResponseLoggingFilter extends OncePerRequestFilter {
             long duration = System.currentTimeMillis() - startTime;
             logResponse(wrappedRequest, wrappedResponse, traceId, duration);
             wrappedResponse.copyBodyToResponse();
-            MDC.remove(TRACE_ID);
+            if (previousTraceId != null) {
+                MDC.put(TRACE_ID, previousTraceId);
+            } else {
+                MDC.remove(TRACE_ID);
+            }
         }
     }
 
