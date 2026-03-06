@@ -2,7 +2,7 @@ app:
   debug: true
   filter:
     rate-limit:
-      max-requests: 10
-      window-millis: 60000
+      max-requests: 3
+      window-millis: 1000
     idempotency:
       ttl-millis: 300000

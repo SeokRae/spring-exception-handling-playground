@@ -1,5 +1,6 @@
 package com.example.exception.playground.global.filter;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,18 +16,21 @@ public class FilterConfig {
     private static final int LOGGING_ORDER = Ordered.HIGHEST_PRECEDENCE + 2;
 
     @Bean
-    public FilterRegistrationBean<RateLimitFilter> rateLimitFilter() {
+    public FilterRegistrationBean<RateLimitFilter> rateLimitFilter(
+            @Value("${app.filter.rate-limit.max-requests}") int maxRequests,
+            @Value("${app.filter.rate-limit.window-millis}") long windowMillis) {
         FilterRegistrationBean<RateLimitFilter> registration = new FilterRegistrationBean<>();
-        registration.setFilter(new RateLimitFilter(10, 60_000));
+        registration.setFilter(new RateLimitFilter(maxRequests, windowMillis));
         registration.addUrlPatterns("/api/*");
         registration.setOrder(RATE_LIMIT_ORDER);
         return registration;
     }
 
     @Bean
-    public FilterRegistrationBean<IdempotencyFilter> idempotencyFilter() {
+    public FilterRegistrationBean<IdempotencyFilter> idempotencyFilter(
+            @Value("${app.filter.idempotency.ttl-millis}") long ttlMillis) {
         FilterRegistrationBean<IdempotencyFilter> registration = new FilterRegistrationBean<>();
-        registration.setFilter(new IdempotencyFilter(300_000));
+        registration.setFilter(new IdempotencyFilter(ttlMillis));
         registration.addUrlPatterns("/api/*");
         registration.setOrder(IDEMPOTENCY_ORDER);
         return registration;
