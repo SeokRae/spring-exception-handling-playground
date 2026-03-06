@@ -6,12 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Profile;
-import org.springframework.core.Ordered;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -195,22 +191,9 @@ class RetryAndIdempotencyIntegrationTest {
     @DisplayName("Rate Limit 윈도우 리셋 재시도")
     @SpringBootTest
     @AutoConfigureMockMvc
-    @ActiveProfiles("test-ratelimit-reset")
+    @ActiveProfiles({"dev", "test-ratelimit-reset"})
     @DirtiesContext
     class RateLimitWindowResetTest {
-
-        @TestConfiguration
-        @Profile("test-ratelimit-reset")
-        static class ShortWindowRateLimitConfig {
-            @Bean
-            public FilterRegistrationBean<RateLimitFilter> rateLimitFilter() {
-                FilterRegistrationBean<RateLimitFilter> registration = new FilterRegistrationBean<>();
-                registration.setFilter(new RateLimitFilter(3, 1_000)); // 3 req/1s
-                registration.addUrlPatterns("/api/*");
-                registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
-                return registration;
-            }
-        }
 
         @Autowired
         private MockMvc mockMvc;
@@ -238,31 +221,9 @@ class RetryAndIdempotencyIntegrationTest {
     @DisplayName("재시도(Retry) 시나리오 - 짧은 TTL")
     @SpringBootTest
     @AutoConfigureMockMvc
-    @ActiveProfiles("test-retry")
+    @ActiveProfiles({"dev", "test-retry"})
     @DirtiesContext
     class RetryScenarioTest {
-
-        @TestConfiguration
-        @Profile("test-retry")
-        static class ShortWindowFilterConfig {
-            @Bean
-            public FilterRegistrationBean<RateLimitFilter> rateLimitFilter() {
-                FilterRegistrationBean<RateLimitFilter> registration = new FilterRegistrationBean<>();
-                registration.setFilter(new RateLimitFilter(50, 1_000)); // 50 req/1s (넉넉하게)
-                registration.addUrlPatterns("/api/*");
-                registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
-                return registration;
-            }
-
-            @Bean
-            public FilterRegistrationBean<IdempotencyFilter> idempotencyFilter() {
-                FilterRegistrationBean<IdempotencyFilter> registration = new FilterRegistrationBean<>();
-                registration.setFilter(new IdempotencyFilter(500)); // 500ms TTL
-                registration.addUrlPatterns("/api/*");
-                registration.setOrder(Ordered.HIGHEST_PRECEDENCE + 1);
-                return registration;
-            }
-        }
 
         @Autowired
         private MockMvc mockMvc;
