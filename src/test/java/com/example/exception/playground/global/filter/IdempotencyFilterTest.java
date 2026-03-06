@@ -24,11 +24,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class IdempotencyFilterTest {
 
     @Nested
-    @DisplayName("dev 프로파일에서 Idempotency 필터 활성화")
+    @DisplayName("필터 활성화 시 Idempotency 필터 동작")
     @SpringBootTest
     @AutoConfigureMockMvc
-    @ActiveProfiles("dev")
-    class DevProfileTest {
+    @ActiveProfiles("test-filter")
+    class EnabledFilterTest {
 
         @Autowired
         private MockMvc mockMvc;

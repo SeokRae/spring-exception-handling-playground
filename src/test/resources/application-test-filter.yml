@@ -2,7 +2,7 @@ app:
   filter:
     enabled: true
     rate-limit:
-      max-requests: 3
-      window: 1s
+      max-requests: 10
+      window: 60s
     idempotency:
       ttl: 5m

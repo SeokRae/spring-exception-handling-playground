@@ -23,13 +23,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class RateLimitFilterTest {
 
     @Nested
-    @DisplayName("dev 프로파일에서 Rate Limit 필터 활성화")
+    @DisplayName("필터 활성화 시 Rate Limit 필터 동작")
     @SpringBootTest
     @AutoConfigureMockMvc
-    @ActiveProfiles("dev")
+    @ActiveProfiles("test-filter")
     @DirtiesContext
     @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-    class DevProfileTest {
+    class EnabledFilterTest {
 
         @Autowired
         private MockMvc mockMvc;

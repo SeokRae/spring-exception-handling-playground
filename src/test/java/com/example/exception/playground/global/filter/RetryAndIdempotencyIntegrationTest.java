@@ -28,7 +28,7 @@ class RetryAndIdempotencyIntegrationTest {
     @DisplayName("Idempotency 엣지 케이스")
     @SpringBootTest
     @AutoConfigureMockMvc
-    @ActiveProfiles("dev")
+    @ActiveProfiles("test-filter")
     class IdempotencyEdgeCaseTest {
 
         @Autowired
@@ -72,7 +72,6 @@ class RetryAndIdempotencyIntegrationTest {
         void clientErrorNotCached() throws Exception {
             String key = UUID.randomUUID().toString();
 
-            // 첫 요청: validation 실패 (age < 1) → 400
             mockMvc.perform(post("/api/samples")
                             .header("Idempotency-Key", key)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -81,7 +80,6 @@ class RetryAndIdempotencyIntegrationTest {
                                     """))
                     .andExpect(status().isBadRequest());
 
-            // 같은 키 + 같은 바디로 재시도 → 캐시되지 않았으므로 다시 처리 (여전히 400)
             mockMvc.perform(post("/api/samples")
                             .header("Idempotency-Key", key)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -100,14 +98,12 @@ class RetryAndIdempotencyIntegrationTest {
                     {"name": "test", "age": 150}
                     """;
 
-            // 첫 요청: BusinessRuleViolation → 422 (캐시 안 함)
             mockMvc.perform(post("/api/samples/business-rule")
                             .header("Idempotency-Key", key)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(body))
                     .andExpect(status().isUnprocessableEntity());
 
-            // 같은 키 + 같은 바디로 재시도 → 캐시되지 않았으므로 다시 처리
             mockMvc.perform(post("/api/samples/business-rule")
                             .header("Idempotency-Key", key)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -121,7 +117,7 @@ class RetryAndIdempotencyIntegrationTest {
     @DisplayName("Rate Limit 엣지 케이스")
     @SpringBootTest
     @AutoConfigureMockMvc
-    @ActiveProfiles("dev")
+    @ActiveProfiles("test-filter")
     @DirtiesContext
     class RateLimitEdgeCaseTest {
 
@@ -162,7 +158,7 @@ class RetryAndIdempotencyIntegrationTest {
     @DisplayName("필터 순서 검증")
     @SpringBootTest
     @AutoConfigureMockMvc
-    @ActiveProfiles("dev")
+    @ActiveProfiles("test-filter")
     class FilterOrderTest {
 
         @Autowired
@@ -191,7 +187,7 @@ class RetryAndIdempotencyIntegrationTest {
     @DisplayName("Rate Limit 윈도우 리셋 재시도")
     @SpringBootTest
     @AutoConfigureMockMvc
-    @ActiveProfiles({"dev", "test-ratelimit-reset"})
+    @ActiveProfiles("test-ratelimit-reset")
     @DirtiesContext
     class RateLimitWindowResetTest {
 
@@ -221,7 +217,7 @@ class RetryAndIdempotencyIntegrationTest {
     @DisplayName("재시도(Retry) 시나리오 - 짧은 TTL")
     @SpringBootTest
     @AutoConfigureMockMvc
-    @ActiveProfiles({"dev", "test-retry"})
+    @ActiveProfiles("test-retry")
     @DirtiesContext
     class RetryScenarioTest {
 
