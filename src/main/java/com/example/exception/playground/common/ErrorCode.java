@@ -19,7 +19,15 @@ public enum ErrorCode {
 
     // Auth
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "A001", "Authentication required"),
-    ACCESS_DENIED(HttpStatus.FORBIDDEN, "A002", "Access denied");
+    ACCESS_DENIED(HttpStatus.FORBIDDEN, "A002", "Access denied"),
+
+    // Rate Limit
+    RATE_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "R001", "Too many requests"),
+
+    // Idempotency
+    IDEMPOTENCY_KEY_MISSING(HttpStatus.BAD_REQUEST, "I001", "Idempotency-Key header is required"),
+    IDEMPOTENCY_KEY_REUSED(HttpStatus.CONFLICT, "I002", "Request in progress with this key"),
+    IDEMPOTENCY_FINGERPRINT_MISMATCH(HttpStatus.UNPROCESSABLE_ENTITY, "I003", "Request does not match original");
 
     private final HttpStatus status;
     private final String code;
