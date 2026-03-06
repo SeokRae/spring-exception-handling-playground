@@ -83,6 +83,11 @@ public class SampleController {
         throw new ServiceUnavailableException("Payment service is under maintenance", 30);
     }
 
+    @GetMapping("/service-unavailable-no-retry")
+    public ResponseEntity<Void> serviceUnavailableNoRetry() {
+        throw new ServiceUnavailableException("Payment service is temporarily unavailable");
+    }
+
     @GetMapping("/request-in-progress")
     public ResponseEntity<Void> requestInProgress() {
         throw new RequestInProgressException("Request is being processed by payment service");
