@@ -208,9 +208,12 @@ class GlobalExceptionHandlerTest {
                     .andDo(print())
                     .andExpect(status().isBadGateway())
                     .andExpect(jsonPath("$.code").value("G001"))
+                    .andExpect(jsonPath("$.status").value(502))
                     .andExpect(jsonPath("$.message").value("Payment service connection refused"))
                     .andExpect(jsonPath("$.retryable").value(true))
-                    .andExpect(jsonPath("$.retryStrategy").value("RESUBMIT"));
+                    .andExpect(jsonPath("$.retryStrategy").value("RESUBMIT"))
+                    .andExpect(jsonPath("$.traceId").exists())
+                    .andExpect(jsonPath("$.timestamp").exists());
         }
 
         @Test
@@ -220,9 +223,12 @@ class GlobalExceptionHandlerTest {
                     .andDo(print())
                     .andExpect(status().isGatewayTimeout())
                     .andExpect(jsonPath("$.code").value("G002"))
+                    .andExpect(jsonPath("$.status").value(504))
                     .andExpect(jsonPath("$.message").value("Payment service did not respond within 5000ms"))
                     .andExpect(jsonPath("$.retryable").value(true))
-                    .andExpect(jsonPath("$.retryStrategy").value("RESUBMIT"));
+                    .andExpect(jsonPath("$.retryStrategy").value("RESUBMIT"))
+                    .andExpect(jsonPath("$.traceId").exists())
+                    .andExpect(jsonPath("$.timestamp").exists());
         }
 
         @Test
@@ -232,10 +238,23 @@ class GlobalExceptionHandlerTest {
                     .andDo(print())
                     .andExpect(status().isServiceUnavailable())
                     .andExpect(jsonPath("$.code").value("G003"))
+                    .andExpect(jsonPath("$.status").value(503))
                     .andExpect(jsonPath("$.message").value("Payment service is under maintenance"))
                     .andExpect(jsonPath("$.retryable").value(true))
                     .andExpect(jsonPath("$.retryStrategy").value("RESUBMIT"))
                     .andExpect(header().string("Retry-After", "30"));
+        }
+
+        @Test
+        @DisplayName("ServiceUnavailableException without retryAfterSeconds does not include Retry-After header")
+        void serviceUnavailableWithoutRetryAfter() throws Exception {
+            mockMvc.perform(get("/api/samples/service-unavailable-no-retry"))
+                    .andDo(print())
+                    .andExpect(status().isServiceUnavailable())
+                    .andExpect(jsonPath("$.code").value("G003"))
+                    .andExpect(jsonPath("$.retryable").value(true))
+                    .andExpect(jsonPath("$.retryStrategy").value("RESUBMIT"))
+                    .andExpect(header().doesNotExist("Retry-After"));
         }
 
         @Test
@@ -245,9 +264,53 @@ class GlobalExceptionHandlerTest {
                     .andDo(print())
                     .andExpect(status().isAccepted())
                     .andExpect(jsonPath("$.code").value("P001"))
+                    .andExpect(jsonPath("$.status").value(202))
                     .andExpect(jsonPath("$.message").value("Request is being processed by payment service"))
                     .andExpect(jsonPath("$.retryable").value(true))
-                    .andExpect(jsonPath("$.retryStrategy").value("POLL_STATUS"));
+                    .andExpect(jsonPath("$.retryStrategy").value("POLL_STATUS"))
+                    .andExpect(jsonPath("$.traceId").exists())
+                    .andExpect(jsonPath("$.timestamp").exists());
+        }
+    }
+
+    @Nested
+    @DisplayName("Non-retryable responses should not contain retry fields")
+    class NonRetryableTests {
+
+        @Test
+        @DisplayName("Business exception response does not include retryable/retryStrategy")
+        void businessExceptionNoRetryFields() throws Exception {
+            mockMvc.perform(get("/api/samples/0"))
+                    .andDo(print())
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.code").value("C006"))
+                    .andExpect(jsonPath("$.retryable").doesNotExist())
+                    .andExpect(jsonPath("$.retryStrategy").doesNotExist());
+        }
+
+        @Test
+        @DisplayName("Unexpected error response does not include retryable/retryStrategy")
+        void unexpectedErrorNoRetryFields() throws Exception {
+            mockMvc.perform(get("/api/samples/unexpected-error"))
+                    .andDo(print())
+                    .andExpect(status().isInternalServerError())
+                    .andExpect(jsonPath("$.code").value("C999"))
+                    .andExpect(jsonPath("$.retryable").doesNotExist())
+                    .andExpect(jsonPath("$.retryStrategy").doesNotExist());
+        }
+
+        @Test
+        @DisplayName("Validation error response does not include retryable/retryStrategy")
+        void validationErrorNoRetryFields() throws Exception {
+            mockMvc.perform(post("/api/samples")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"name": "", "age": 25}
+                                    """))
+                    .andDo(print())
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.retryable").doesNotExist())
+                    .andExpect(jsonPath("$.retryStrategy").doesNotExist());
         }
     }
 
