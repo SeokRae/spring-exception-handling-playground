@@ -1,4 +1,4 @@
-package com.example.exception.playground.sample;
+package com.example.exception.playground.sample.adapter.in.web;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;

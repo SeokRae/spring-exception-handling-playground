@@ -1,4 +1,4 @@
-package com.example.exception.playground.common;
+package com.example.exception.playground.global.filter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

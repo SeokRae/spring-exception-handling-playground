@@ -1,4 +1,4 @@
-package com.example.exception.playground.common;
+package com.example.exception.playground.global.error;
 
 import org.springframework.http.HttpStatus;
 
