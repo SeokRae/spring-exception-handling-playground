@@ -165,7 +165,7 @@ class RetryAndIdempotencyIntegrationTest {
         private ApplicationContext context;
 
         @Test
-        @DisplayName("Rate Limit → Idempotency → Logging 순서로 등록")
+        @DisplayName("Logging → Rate Limit → Idempotency 순서로 등록")
         @SuppressWarnings("rawtypes")
         void filterOrderIsCorrect() {
             List<FilterRegistrationBean> filters = context.getBeansOfType(FilterRegistrationBean.class)
@@ -177,9 +177,9 @@ class RetryAndIdempotencyIntegrationTest {
                     .toList();
 
             assertThat(filters).hasSize(3);
-            assertThat(filters.get(0).getFilter()).isInstanceOf(RateLimitFilter.class);
-            assertThat(filters.get(1).getFilter()).isInstanceOf(IdempotencyFilter.class);
-            assertThat(filters.get(2).getFilter()).isInstanceOf(RequestResponseLoggingFilter.class);
+            assertThat(filters.get(0).getFilter()).isInstanceOf(RequestResponseLoggingFilter.class);
+            assertThat(filters.get(1).getFilter()).isInstanceOf(RateLimitFilter.class);
+            assertThat(filters.get(2).getFilter()).isInstanceOf(IdempotencyFilter.class);
         }
     }
 

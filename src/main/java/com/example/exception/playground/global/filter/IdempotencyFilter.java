@@ -72,14 +72,16 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         try {
             filterChain.doFilter(cachedRequest, wrappedResponse);
         } finally {
+            // Cache only 2xx responses (before copying body to response)
+            int status = wrappedResponse.getStatus();
+            if (status >= 200 && status < 300) {
+                String responseBody = new String(wrappedResponse.getContentAsByteArray(), StandardCharsets.UTF_8);
+                cache.put(idempotencyKey, IdempotencyEntry.completed(
+                        fingerprint, status, responseBody, wrappedResponse.getContentType()));
+            } else {
+                cache.remove(idempotencyKey);
+            }
             wrappedResponse.copyBodyToResponse();
-        }
-
-        // Cache only 2xx responses
-        if (wrappedResponse.getStatus() >= 200 && wrappedResponse.getStatus() < 300) {
-            cache.put(idempotencyKey, IdempotencyEntry.completed(fingerprint, wrappedResponse.getStatus()));
-        } else {
-            cache.remove(idempotencyKey);
         }
     }
 
@@ -97,8 +99,12 @@ public class IdempotencyFilter extends OncePerRequestFilter {
             return;
         }
 
-        // Return cached response status
+        // Return cached response
         response.setStatus(existing.httpStatus());
+        if (existing.responseBody() != null && !existing.responseBody().isBlank()) {
+            response.setContentType(existing.contentType());
+            response.getWriter().write(existing.responseBody());
+        }
     }
 
     private String buildFingerprint(String method, String uri, byte[] body) {
@@ -121,14 +127,18 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         IN_PROGRESS, COMPLETED
     }
 
-    record IdempotencyEntry(String fingerprint, IdempotencyStatus status, int httpStatus, long createdAt) {
+    record IdempotencyEntry(String fingerprint, IdempotencyStatus status, int httpStatus, String responseBody,
+                            String contentType, long createdAt) {
 
         static IdempotencyEntry inProgress(String fingerprint) {
-            return new IdempotencyEntry(fingerprint, IdempotencyStatus.IN_PROGRESS, 0, System.currentTimeMillis());
+            return new IdempotencyEntry(fingerprint, IdempotencyStatus.IN_PROGRESS, 0, null, null,
+                    System.currentTimeMillis());
         }
 
-        static IdempotencyEntry completed(String fingerprint, int httpStatus) {
-            return new IdempotencyEntry(fingerprint, IdempotencyStatus.COMPLETED, httpStatus, System.currentTimeMillis());
+        static IdempotencyEntry completed(String fingerprint, int httpStatus, String responseBody,
+                                          String contentType) {
+            return new IdempotencyEntry(fingerprint, IdempotencyStatus.COMPLETED, httpStatus, responseBody,
+                    contentType, System.currentTimeMillis());
         }
 
         boolean isExpired(long now, long ttlMillis) {
