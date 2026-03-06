@@ -149,6 +149,40 @@ class GlobalExceptionHandlerTest {
         }
 
         @Test
+        @DisplayName("UnauthorizedException returns 401")
+        void unauthorized() throws Exception {
+            mockMvc.perform(get("/api/samples/unauthorized"))
+                    .andDo(print())
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.code").value("A001"))
+                    .andExpect(jsonPath("$.message").value("Invalid or expired token"));
+        }
+
+        @Test
+        @DisplayName("AccessDeniedException returns 403")
+        void accessDenied() throws Exception {
+            mockMvc.perform(get("/api/samples/access-denied"))
+                    .andDo(print())
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.code").value("A002"))
+                    .andExpect(jsonPath("$.message").value("Insufficient permissions to access this resource"));
+        }
+
+        @Test
+        @DisplayName("BusinessRuleViolationException returns 422")
+        void businessRuleViolation() throws Exception {
+            mockMvc.perform(post("/api/samples/business-rule")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"name": "test", "age": 150}
+                                    """))
+                    .andDo(print())
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.code").value("B002"))
+                    .andExpect(jsonPath("$.message").value("Age cannot exceed 100 for this operation"));
+        }
+
+        @Test
         @DisplayName("DuplicateResourceException returns 409")
         void duplicate() throws Exception {
             mockMvc.perform(post("/api/samples")
