@@ -34,8 +34,8 @@ public enum ErrorCode {
     GATEWAY_TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "G002", "Downstream service timeout"),
     SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "G003", "Service temporarily unavailable"),
 
-    // Accepted (비동기 처리 상태)
-    REQUEST_IN_PROGRESS(HttpStatus.ACCEPTED, "P001", "Request is being processed");
+    // Processing (처리 중 - 재시도 요청)
+    REQUEST_IN_PROGRESS(HttpStatus.SERVICE_UNAVAILABLE, "P001", "Request is being processed");
 
     private final HttpStatus status;
     private final String code;
