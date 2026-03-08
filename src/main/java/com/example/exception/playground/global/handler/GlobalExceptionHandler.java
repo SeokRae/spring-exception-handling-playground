@@ -119,18 +119,8 @@ public class GlobalExceptionHandler {
         log.info("Request in progress: {}", e.getMessage());
         ErrorCode errorCode = e.getErrorCode();
         ErrorResponse response = debug
-                ? ErrorResponse.retryableWithDebug(errorCode, e.getMessage(), "POLL_STATUS", e)
-                : ErrorResponse.retryable(errorCode, e.getMessage(), "POLL_STATUS");
-        return ResponseEntity.status(errorCode.getStatus()).body(response);
-    }
-
-    @ExceptionHandler(ServiceUnavailableException.class)
-    protected ResponseEntity<ErrorResponse> handleServiceUnavailable(ServiceUnavailableException e) {
-        log.warn("Service unavailable: {}", e.getMessage());
-        ErrorCode errorCode = e.getErrorCode();
-        ErrorResponse response = debug
-                ? ErrorResponse.retryableWithDebug(errorCode, e.getMessage(), "RESUBMIT", e)
-                : ErrorResponse.retryable(errorCode, e.getMessage(), "RESUBMIT");
+                ? ErrorResponse.retryableWithDebug(errorCode, e.getMessage(), "RETRY_AFTER", e)
+                : ErrorResponse.retryable(errorCode, e.getMessage(), "RETRY_AFTER");
         ResponseEntity.BodyBuilder builder = ResponseEntity.status(errorCode.getStatus());
         if (e.getRetryAfterSeconds() != null) {
             builder.header(HttpHeaders.RETRY_AFTER, String.valueOf(e.getRetryAfterSeconds()));
@@ -138,13 +128,23 @@ public class GlobalExceptionHandler {
         return builder.body(response);
     }
 
+    @ExceptionHandler(ServiceUnavailableException.class)
+    protected ResponseEntity<ErrorResponse> handleServiceUnavailable(ServiceUnavailableException e) {
+        log.warn("Service unavailable: {}", e.getMessage());
+        ErrorCode errorCode = e.getErrorCode();
+        ErrorResponse response = debug
+                ? ErrorResponse.withDebug(errorCode, e.getMessage(), e)
+                : ErrorResponse.of(errorCode, e.getMessage());
+        return ResponseEntity.status(errorCode.getStatus()).body(response);
+    }
+
     @ExceptionHandler(GatewayException.class)
     protected ResponseEntity<ErrorResponse> handleGatewayException(GatewayException e) {
         log.error("Gateway error: {}", e.getMessage(), e);
         ErrorCode errorCode = e.getErrorCode();
         ErrorResponse response = debug
-                ? ErrorResponse.retryableWithDebug(errorCode, e.getMessage(), "RESUBMIT", e)
-                : ErrorResponse.retryable(errorCode, e.getMessage(), "RESUBMIT");
+                ? ErrorResponse.withDebug(errorCode, e.getMessage(), e)
+                : ErrorResponse.of(errorCode, e.getMessage());
         return ResponseEntity.status(errorCode.getStatus()).body(response);
     }
 

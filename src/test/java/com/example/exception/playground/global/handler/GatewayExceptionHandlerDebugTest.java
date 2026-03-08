@@ -26,14 +26,14 @@ class GatewayExceptionHandlerDebugTest {
     class GatewayErrorDebug {
 
         @Test
-        @DisplayName("GatewayErrorException includes debug info with retryable fields")
+        @DisplayName("GatewayErrorException includes debug info without retry")
         void gatewayErrorWithDebug() throws Exception {
             mockMvc.perform(get("/api/samples/gateway-error"))
                     .andDo(print())
                     .andExpect(status().isBadGateway())
                     .andExpect(jsonPath("$.code").value("G001"))
-                    .andExpect(jsonPath("$.retryable").value(true))
-                    .andExpect(jsonPath("$.retryStrategy").value("RESUBMIT"))
+                    .andExpect(jsonPath("$.retryable").doesNotExist())
+                    .andExpect(jsonPath("$.retryStrategy").doesNotExist())
                     .andExpect(jsonPath("$.debugMessage").value("GatewayErrorException: Payment service connection refused"))
                     .andExpect(jsonPath("$.stackTrace").exists());
         }
@@ -50,7 +50,8 @@ class GatewayExceptionHandlerDebugTest {
                     .andDo(print())
                     .andExpect(status().isGatewayTimeout())
                     .andExpect(jsonPath("$.code").value("G002"))
-                    .andExpect(jsonPath("$.retryable").value(true))
+                    .andExpect(jsonPath("$.retryable").doesNotExist())
+                    .andExpect(jsonPath("$.retryStrategy").doesNotExist())
                     .andExpect(jsonPath("$.debugMessage").value("GatewayTimeoutException: Payment service did not respond within 5000ms"))
                     .andExpect(jsonPath("$.stackTrace").exists());
         }
@@ -61,34 +62,35 @@ class GatewayExceptionHandlerDebugTest {
     class ServiceUnavailableDebug {
 
         @Test
-        @DisplayName("ServiceUnavailableException includes debug info")
+        @DisplayName("ServiceUnavailableException includes debug info without retry")
         void serviceUnavailableWithDebug() throws Exception {
             mockMvc.perform(get("/api/samples/service-unavailable"))
                     .andDo(print())
                     .andExpect(status().isServiceUnavailable())
                     .andExpect(jsonPath("$.code").value("G003"))
-                    .andExpect(jsonPath("$.retryable").value(true))
+                    .andExpect(jsonPath("$.retryable").doesNotExist())
                     .andExpect(jsonPath("$.debugMessage").value("ServiceUnavailableException: Payment service is under maintenance"))
                     .andExpect(jsonPath("$.stackTrace").exists())
-                    .andExpect(header().string("Retry-After", "30"));
+                    .andExpect(header().doesNotExist("Retry-After"));
         }
     }
 
     @Nested
-    @DisplayName("202 Accepted in debug mode")
+    @DisplayName("503 Request In Progress in debug mode")
     class RequestInProgressDebug {
 
         @Test
-        @DisplayName("RequestInProgressException includes debug info with POLL_STATUS")
+        @DisplayName("RequestInProgressException includes debug info with RETRY_AFTER")
         void requestInProgressWithDebug() throws Exception {
             mockMvc.perform(get("/api/samples/request-in-progress"))
                     .andDo(print())
-                    .andExpect(status().isAccepted())
+                    .andExpect(status().isServiceUnavailable())
                     .andExpect(jsonPath("$.code").value("P001"))
                     .andExpect(jsonPath("$.retryable").value(true))
-                    .andExpect(jsonPath("$.retryStrategy").value("POLL_STATUS"))
+                    .andExpect(jsonPath("$.retryStrategy").value("RETRY_AFTER"))
                     .andExpect(jsonPath("$.debugMessage").value("RequestInProgressException: Request is being processed by payment service"))
-                    .andExpect(jsonPath("$.stackTrace").exists());
+                    .andExpect(jsonPath("$.stackTrace").exists())
+                    .andExpect(header().string("Retry-After", "30"));
         }
     }
 }

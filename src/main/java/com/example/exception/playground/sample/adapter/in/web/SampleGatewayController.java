@@ -25,16 +25,16 @@ public class SampleGatewayController {
 
     @GetMapping("/service-unavailable")
     public ResponseEntity<Void> serviceUnavailable() {
-        throw new ServiceUnavailableException("Payment service is under maintenance", 30);
-    }
-
-    @GetMapping("/service-unavailable-no-retry")
-    public ResponseEntity<Void> serviceUnavailableNoRetry() {
-        throw new ServiceUnavailableException("Payment service is temporarily unavailable");
+        throw new ServiceUnavailableException("Payment service is under maintenance");
     }
 
     @GetMapping("/request-in-progress")
     public ResponseEntity<Void> requestInProgress() {
+        throw new RequestInProgressException("Request is being processed by payment service", 30);
+    }
+
+    @GetMapping("/request-in-progress-no-retry")
+    public ResponseEntity<Void> requestInProgressNoRetry() {
         throw new RequestInProgressException("Request is being processed by payment service");
     }
 }
