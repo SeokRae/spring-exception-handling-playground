@@ -63,13 +63,18 @@ public class RequestResponseLoggingFilter extends OncePerRequestFilter {
         int status = response.getStatus();
         String body = new String(response.getContentAsByteArray(), StandardCharsets.UTF_8);
 
+        StringBuilder headers = new StringBuilder();
+        response.getHeaderNames().forEach(name ->
+                headers.append(name).append(": ").append(response.getHeader(name)).append(", "));
+
         String requestBody = new String(request.getContentAsByteArray(), StandardCharsets.UTF_8);
         if (!requestBody.isBlank()) {
             log.info("[{}] >>> Request Body: {}", traceId, requestBody);
         }
 
-        String responseLog = String.format("[%s] <<< %s %s | Status: %d | %dms%s",
+        String responseLog = String.format("[%s] <<< %s %s | Status: %d | %dms | Headers: [%s]%s",
                 traceId, request.getMethod(), request.getRequestURI(), status, duration,
+                headers.length() > 2 ? headers.substring(0, headers.length() - 2) : "",
                 body.isBlank() ? "" : " | Body: " + body);
 
         if (status >= 400) {
